@@ -184,9 +184,46 @@ const useStore = create(
       
       // Current Focus
       currentFocus: mockData.currentFocus,
+      updateCurrentFocus: (pillar, focus) =>
+        set((state) => ({
+          currentFocus: {
+            ...state.currentFocus,
+            [pillar]: focus,
+          },
+        })),
+      addCurrentFocus: (pillar, focus) =>
+        set((state) => ({
+          currentFocus: {
+            ...state.currentFocus,
+            [pillar]: focus,
+          },
+        })),
+      deleteCurrentFocus: (pillar) =>
+        set((state) => {
+          const newFocus = { ...state.currentFocus };
+          delete newFocus[pillar];
+          return { currentFocus: newFocus };
+        }),
       
       // Achievements
       achievements: mockData.achievements,
+      addAchievement: (achievement) =>
+        set((state) => ({
+          achievements: [
+            { ...achievement, id: Date.now() },
+            ...state.achievements,
+          ],
+        })),
+      updateAchievement: (id, updates) =>
+        set((state) => ({
+          achievements: state.achievements.map((achievement) =>
+            achievement.id === id ? { ...achievement, ...updates } : achievement
+          ),
+        })),
+      deleteAchievement: (id) =>
+        set((state) => ({
+          achievements: state.achievements.filter((achievement) => achievement.id !== id),
+        })),
       
       // Time Logs
       timeLogs: mockData.timeLogs || [],

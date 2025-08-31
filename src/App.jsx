@@ -8,6 +8,7 @@ import Insights from './pages/Insights';
 import Vision from './pages/Vision';
 import Goals from './pages/Goals';
 import TimeLogs from './pages/TimeLogs';
+import Settings from './pages/Settings';
 import useStore from './store/useStore';
 import { useState, useEffect } from 'react';
 
@@ -89,6 +90,11 @@ function App() {
             <Route path="/timelogs" element={
               <PageWrapper>
                 <TimeLogs />
+              </PageWrapper>
+            } />
+            <Route path="/settings" element={
+              <PageWrapper>
+                <Settings />
               </PageWrapper>
             } />
           </Routes>

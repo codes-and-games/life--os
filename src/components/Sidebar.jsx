@@ -9,7 +9,8 @@ import {
   ChevronRight,
   Menu,
   X,
-  Clock
+  Clock,
+  Settings
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import useStore from '../store/useStore';
@@ -22,6 +23,7 @@ const navigationItems = [
   { icon: Eye, label: 'Vision', path: '/vision' },
   { icon: Target, label: 'Goals', path: '/goals' },
   { icon: Clock, label: 'Time Logs', path: '/timelogs' },
+  { icon: Settings, label: 'Settings', path: '/settings' },
 ];
 
 const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
