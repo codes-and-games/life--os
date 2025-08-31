@@ -6,7 +6,9 @@ import ProgressBar from '../components/ProgressBar';
 import useStore from '../store/useStore';
 
 const Dashboard = () => {
-  const { user, goals, analytics, journalEntries, achievements, currentFocus } = useStore();
+  const { user, goals, journalEntries, achievements, currentFocus, getAnalytics } = useStore();
+  
+  const analytics = getAnalytics();
 
   const todayCompleted = goals.today.filter(goal => goal.completed).length;
   const todayTotal = goals.today.length;

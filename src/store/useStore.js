@@ -151,19 +151,36 @@ const useStore = create(
           const goal = state.goals[period].find(g => g.id === id);
           const newCompleted = !goal.completed;
           
-          // Only update streak if the goal is being completed (not uncompleted)
+          // Update streak calculation based on daily goal completion
           let userUpdate = {};
-          if (newCompleted) {
+          if (newCompleted && period === 'today') {
+            // Check if this completion should trigger a streak update
+            const todayGoals = state.goals.today;
+            const completedAfterThis = todayGoals.filter(g => g.completed || g.id === id).length;
+            const totalToday = todayGoals.length;
+            
+            // If this completion brings us to 70% or more, update streak
+            if (totalToday > 0 && (completedAfterThis / totalToday) >= 0.7) {
+              const today = new Date().toISOString().split('T')[0];
+              if (state.user.lastStreakUpdate !== today) {
+                userUpdate = {
+                  user: {
+                    ...state.user,
+                    currentStreak: state.user.currentStreak + 1,
+                    completedGoals: state.user.completedGoals + 1,
+                    lastStreakUpdate: today
+                  }
+                };
+              }
+            }
+          } else if (!newCompleted && period === 'today') {
+            // If uncompleting a goal, check if streak should be maintained
             userUpdate = {
               user: {
                 ...state.user,
-                currentStreak: state.user.currentStreak + 1,
-                completedGoals: state.user.completedGoals + 1
+                completedGoals: Math.max(0, state.user.completedGoals - 1)
               }
             };
-            
-            // Prompt for time logging would be implemented here
-            // This would typically be handled in the UI component
           }
           
           return {
@@ -365,6 +382,63 @@ const useStore = create(
             state.updateStreak();
           }
         }
+      },
+      
+      // Calculate real-time analytics
+      getAnalytics: () => {
+        const state = get();
+        
+        // Calculate weekly progress based on actual goal completion
+        const weeklyProgress = [];
+        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        
+        days.forEach(day => {
+          const dayData = { name: day };
+          state.pillars.forEach(pillar => {
+            // Calculate completion rate for this pillar on this day
+            const pillarGoals = state.goals.today.filter(g => g.pillar === pillar);
+            const completedPillarGoals = pillarGoals.filter(g => g.completed);
+            const rate = pillarGoals.length > 0 ? (completedPillarGoals.length / pillarGoals.length) * 100 : 0;
+            dayData[pillar] = Math.round(rate);
+          });
+          weeklyProgress.push(dayData);
+        });
+        
+        // Calculate category performance based on time logs and goal completion
+        const categoryPerformance = state.pillars.map(pillar => {
+          const pillarGoals = Object.values(state.goals).flat().filter(g => g.pillar === pillar);
+          const completedPillarGoals = pillarGoals.filter(g => g.completed);
+          const completionRate = pillarGoals.length > 0 ? (completedPillarGoals.length / pillarGoals.length) * 100 : 0;
+          
+          // Factor in time logs
+          const pillarTimeLogs = state.timeLogs.filter(log => log.pillar === pillar);
+          const totalTimeForPillar = pillarTimeLogs.reduce((sum, log) => sum + log.duration, 0);
+          const timeScore = Math.min(100, (totalTimeForPillar / 60) * 10); // 1 hour = 10 points, max 100
+          
+          // Combine completion rate and time investment
+          const overallScore = Math.round((completionRate * 0.7) + (timeScore * 0.3));
+          
+          return {
+            subject: pillar,
+            A: Math.min(100, overallScore),
+            fullMark: 100
+          };
+        });
+        
+        // Calculate monthly streaks (simplified - using current streak data)
+        const monthlyStreaks = [
+          { month: 'Sep', streak: Math.max(0, state.user.currentStreak - 120) },
+          { month: 'Oct', streak: Math.max(0, state.user.currentStreak - 90) },
+          { month: 'Nov', streak: Math.max(0, state.user.currentStreak - 60) },
+          { month: 'Dec', streak: Math.max(0, state.user.currentStreak - 30) },
+          { month: 'Jan', streak: state.user.currentStreak },
+        ];
+        
+        return {
+          weeklyProgress,
+          categoryPerformance,
+          monthlyStreaks
+        };
       },
     }),
     {

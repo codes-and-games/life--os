@@ -59,7 +59,7 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
     <>
       {/* Hamburger menu button for mobile only */}
       <button
-        className="fixed top-4 left-4 z-50 sm:hidden bg-dark-900/80 p-2 rounded-lg border border-dark-700/30"
+        className="fixed top-4 left-4 z-50 lg:hidden bg-dark-900/80 p-2 rounded-lg border border-dark-700/30"
         onClick={() => setMobileMenuOpen(true)}
         aria-label="Open sidebar"
         style={{ display: mobileMenuOpen ? 'none' : 'block' }}

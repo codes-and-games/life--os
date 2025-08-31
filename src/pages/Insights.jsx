@@ -5,7 +5,9 @@ import AnimatedCard from '../components/AnimatedCard';
 import useStore from '../store/useStore';
 
 const Insights = () => {
-  const { analytics, user, goals, timeLogs, journalEntries } = useStore();
+  const { user, goals, timeLogs, journalEntries, getAnalytics } = useStore();
+  
+  const analytics = getAnalytics();
 
   const completionData = [
     { name: 'Today', completed: goals.today.filter(g => g.completed).length, total: goals.today.length },
@@ -160,10 +162,11 @@ const Insights = () => {
                 <YAxis stroke="#64748b" />
                 <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155' }} />
                 <Legend />
-                <Line type="monotone" dataKey="health" stroke="#10b981" strokeWidth={3} name="Health" />
-                <Line type="monotone" dataKey="debate" stroke="#3b82f6" strokeWidth={3} name="Debate" />
-                <Line type="monotone" dataKey="academics" stroke="#8b5cf6" strokeWidth={3} name="Academics" />
-                <Line type="monotone" dataKey="passions" stroke="#f59e0b" strokeWidth={3} name="Passions" />
+                <Line type="monotone" dataKey="Health" stroke="#10b981" strokeWidth={3} name="Health" />
+                <Line type="monotone" dataKey="Academics" stroke="#3b82f6" strokeWidth={3} name="Academics" />
+                <Line type="monotone" dataKey="Passions" stroke="#8b5cf6" strokeWidth={3} name="Passions" />
+                <Line type="monotone" dataKey="Relationship" stroke="#ec4899" strokeWidth={3} name="Relationship" />
+                <Line type="monotone" dataKey="Career" stroke="#f59e0b" strokeWidth={3} name="Career" />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -174,15 +177,19 @@ const Insights = () => {
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span className="text-xs md:text-sm text-dark-300">Debate</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
               <span className="text-xs md:text-sm text-dark-300">Academics</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+              <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
               <span className="text-xs md:text-sm text-dark-300">Passions</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-pink-500 rounded-full"></div>
+              <span className="text-xs md:text-sm text-dark-300">Relationship</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+              <span className="text-xs md:text-sm text-dark-300">Career</span>
             </div>
           </div>
         </AnimatedCard>

@@ -256,12 +256,42 @@ const TimeLogs = () => {
         
         {filteredLogs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredLogs.map(log => (
-              <TimeLog key={log.id} log={log} />
+            {filteredLogs.map((log, index) => (
+              <motion.div
+                key={log.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-dark-700/30 rounded-xl p-4 border border-dark-600/30 hover:border-dark-500/50 transition-colors"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium text-blue-400">{log.category}</span>
+                    <span className="text-xs text-dark-500">•</span>
+                    <span className="text-xs font-medium text-purple-400">{log.pillar}</span>
+                  </div>
+                  <span className="text-xs text-dark-400">{log.date}</span>
+                </div>
+                
+                <h4 className="font-semibold text-white mb-1">{log.activity}</h4>
+                
+                <div className="flex items-center justify-between text-sm text-dark-300 mb-2">
+                  <div className="flex items-center space-x-1">
+                    <Clock className="w-4 h-4" />
+                    <span>{log.startTime} - {log.endTime}</span>
+                  </div>
+                  <span>{log.duration} min</span>
+                </div>
+                
+                {log.notes && (
+                  <p className="text-sm text-dark-400 mt-2 line-clamp-2">{log.notes}</p>
+                )}
+              </motion.div>
             ))}
           </div>
         ) : (
-          <div className="flex items-center justify-center h-32 text-dark-400">
+          <div className="text-center py-8 text-dark-400">
+            <Clock className="w-12 h-12 mx-auto mb-3 opacity-30" />
             No time logs found for the selected filters
           </div>
         )}

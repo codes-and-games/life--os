@@ -60,14 +60,6 @@ const Navbar = ({ setIsMobileMenuOpen }) => {
     >
       <div className="flex items-center justify-between h-full px-4 sm:px-6 md:px-8 w-full">
         <div className="flex items-center">
-          {/* Hamburger menu for tablet */}
-          <button
-            onClick={() => setIsMobileMenuOpen(true)}
-            className="p-2 mr-2 rounded-lg hover:bg-dark-800/50 transition-colors lg:hidden sm:block"
-          >
-            <Menu className="w-6 h-6 text-dark-400" />
-          </button>
-
           <div className="flex items-center space-x-4">
             <Calendar className="w-6 h-6 text-blue-400 hidden sm:block" />
             <div>
