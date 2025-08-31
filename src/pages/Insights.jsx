@@ -37,28 +37,23 @@ const Insights = () => {
   const mostProductivePillar = Object.entries(timeLogInsights)
     .sort((a, b) => b[1].totalTime - a[1].totalTime)[0]?.[0] || 'N/A';
 
-  const categoryDistribution = [
-    { 
-      name: 'Brain', 
-      value: timeLogInsights.Brain ? Math.round((timeLogInsights.Brain.totalTime / totalTimeLogged) * 100) : 0, 
-      color: '#3b82f6' 
-    },
-    { 
-      name: 'Voice', 
-      value: timeLogInsights.Voice ? Math.round((timeLogInsights.Voice.totalTime / totalTimeLogged) * 100) : 0, 
-      color: '#8b5cf6' 
-    },
-    { 
-      name: 'Body', 
-      value: timeLogInsights.Body ? Math.round((timeLogInsights.Body.totalTime / totalTimeLogged) * 100) : 0, 
-      color: '#10b981' 
-    },
-    { 
-      name: 'Soul', 
-      value: timeLogInsights.Soul ? Math.round((timeLogInsights.Soul.totalTime / totalTimeLogged) * 100) : 0, 
-      color: '#f59e0b' 
-    },
-  ];
+  const { pillars } = useStore();
+  
+  const pillarColorMap = {
+    Health: '#10b981',
+    Academics: '#3b82f6',
+    Passions: '#8b5cf6',
+    Relationship: '#ec4899',
+    Career: '#f59e0b'
+  };
+  
+  const defaultColors = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ec4899', '#6366f1', '#06b6d4', '#14b8a6'];
+  
+  const categoryDistribution = pillars.map((pillar, index) => ({
+    name: pillar,
+    value: timeLogInsights[pillar] ? Math.round((timeLogInsights[pillar].totalTime / totalTimeLogged) * 100) : 0,
+    color: pillarColorMap[pillar] || defaultColors[index % defaultColors.length]
+  }));
 
   // Helper function to get the appropriate background color class
   const getBgColorClass = (color) => {

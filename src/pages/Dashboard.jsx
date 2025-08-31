@@ -95,10 +95,11 @@ const Dashboard = () => {
               <LineChart data={analytics.weeklyProgress}>
                 <XAxis dataKey="name" stroke="#64748b" />
                 <YAxis stroke="#64748b" />
-                <Line type="monotone" dataKey="health" stroke="#10b981" strokeWidth={3} dot={{ fill: '#10b981', r: 6 }} />
-                <Line type="monotone" dataKey="debate" stroke="#3b82f6" strokeWidth={3} dot={{ fill: '#3b82f6', r: 6 }} />
-                <Line type="monotone" dataKey="academics" stroke="#8b5cf6" strokeWidth={3} dot={{ fill: '#8b5cf6', r: 6 }} />
-                <Line type="monotone" dataKey="passions" stroke="#f59e0b" strokeWidth={3} dot={{ fill: '#f59e0b', r: 6 }} />
+                <Line type="monotone" dataKey="Health" stroke="#10b981" strokeWidth={3} dot={{ fill: '#10b981', r: 6 }} />
+                <Line type="monotone" dataKey="Academics" stroke="#3b82f6" strokeWidth={3} dot={{ fill: '#3b82f6', r: 6 }} />
+                <Line type="monotone" dataKey="Passions" stroke="#8b5cf6" strokeWidth={3} dot={{ fill: '#8b5cf6', r: 6 }} />
+                <Line type="monotone" dataKey="Career" stroke="#f59e0b" strokeWidth={3} dot={{ fill: '#f59e0b', r: 6 }} />
+                <Line type="monotone" dataKey="Relationship" stroke="#ec4899" strokeWidth={3} dot={{ fill: '#ec4899', r: 6 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>

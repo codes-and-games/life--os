@@ -4,7 +4,7 @@ import { Plus, Check, X, Calendar, Edit, ChevronDown, ChevronUp, List } from 'lu
 import useStore from '../store/useStore';
 
 const TodoList = ({ period, title }) => {
-  const { goals, addGoal, toggleGoal, deleteGoal, updateGoal, checkStreakUpdate } = useStore();
+  const { goals, addGoal, toggleGoal, deleteGoal, updateGoal, checkStreakUpdate, pillars } = useStore();
   const [newGoal, setNewGoal] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [editingGoalId, setEditingGoalId] = useState(null);
