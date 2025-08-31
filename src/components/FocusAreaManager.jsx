@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, Plus, Edit3, Trash2, Check, X, Brain, Mic, Dumbbell, Heart } from 'lucide-react';
+import { Target, Plus, Edit3, Trash2, Check, X, Heart, BookOpen, Briefcase, Users, Activity } from 'lucide-react';
 import useStore from '../store/useStore';
 
 const FocusAreaManager = () => {
-  const { currentFocus, updateCurrentFocus, addCurrentFocus, deleteCurrentFocus } = useStore();
+  const { currentFocus, updateCurrentFocus, addCurrentFocus, deleteCurrentFocus, pillars } = useStore();
   const [editingPillar, setEditingPillar] = useState(null);
   const [editText, setEditText] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -13,18 +13,34 @@ const FocusAreaManager = () => {
     focus: ''
   });
 
-  const pillars = ['Brain', 'Voice', 'Body', 'Soul'];
   const pillarIcons = {
-    Brain: Brain,
-    Voice: Mic,
-    Body: Dumbbell,
-    Soul: Heart
+    Health: Activity,
+    Academics: BookOpen,
+    Passions: Heart,
+    Relationship: Users,
+    Career: Briefcase,
+    // Fallback icon for custom pillars
+    default: Target
   };
+  
   const pillarColors = {
-    Brain: 'blue',
-    Voice: 'purple',
-    Body: 'emerald',
-    Soul: 'orange'
+    Health: 'emerald',
+    Academics: 'blue',
+    Passions: 'purple',
+    Relationship: 'pink',
+    Career: 'orange',
+    // Cycle through colors for custom pillars
+    default: ['blue', 'emerald', 'purple', 'orange', 'pink', 'indigo', 'cyan', 'teal']
+  };
+
+  const getPillarIcon = (pillar) => {
+    return pillarIcons[pillar] || pillarIcons.default;
+  };
+
+  const getPillarColor = (pillar) => {
+    if (pillarColors[pillar]) return pillarColors[pillar];
+    const index = pillars.indexOf(pillar);
+    return pillarColors.default[index % pillarColors.default.length];
   };
 
   const handleEdit = (pillar, focus) => {
@@ -137,8 +153,8 @@ const FocusAreaManager = () => {
       {/* Focus Areas */}
       <div className="space-y-4">
         {Object.entries(currentFocus).map(([pillar, focus], index) => {
-          const Icon = pillarIcons[pillar];
-          const color = pillarColors[pillar];
+          const Icon = getPillarIcon(pillar);
+          const color = getPillarColor(pillar);
           
           return (
             <motion.div

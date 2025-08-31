@@ -4,6 +4,7 @@ import { Settings as SettingsIcon } from 'lucide-react';
 import AnimatedCard from '../components/AnimatedCard';
 import AchievementManager from '../components/AchievementManager';
 import FocusAreaManager from '../components/FocusAreaManager';
+import PillarManager from '../components/PillarManager';
 
 const Settings = () => {
   return (
@@ -18,15 +19,26 @@ const Settings = () => {
           Settings & Management
         </h1>
         <p className="text-dark-400 text-lg">
-          Manage your achievements and focus areas to keep your life organized.
+          Customize your life pillars, manage achievements, and set focus areas.
         </p>
+      </motion.div>
+
+      {/* Pillar Management */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <AnimatedCard>
+          <PillarManager />
+        </AnimatedCard>
       </motion.div>
 
       {/* Achievement Management */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
+        transition={{ delay: 0.3 }}
       >
         <AnimatedCard>
           <AchievementManager />
@@ -37,7 +49,7 @@ const Settings = () => {
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
+        transition={{ delay: 0.5 }}
       >
         <AnimatedCard>
           <FocusAreaManager />

@@ -2,11 +2,97 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { mockData } from '../data/mockData';
 
+const defaultPillars = ['Health', 'Academics', 'Passions', 'Relationship', 'Career'];
+
 const useStore = create(
   persist(
     (set, get) => ({
       // User data
       user: mockData.user,
+      
+      // Pillars
+      pillars: defaultPillars,
+      addPillar: (pillar) =>
+        set((state) => ({
+          pillars: [...state.pillars, pillar],
+        })),
+      updatePillar: (oldPillar, newPillar) =>
+        set((state) => {
+          const newPillars = state.pillars.map(p => p === oldPillar ? newPillar : p);
+          
+          // Update all related data
+          const updatedGoals = {};
+          Object.keys(state.goals).forEach(period => {
+            updatedGoals[period] = state.goals[period].map(goal => ({
+              ...goal,
+              pillar: goal.pillar === oldPillar ? newPillar : goal.pillar
+            }));
+          });
+          
+          const updatedJournalEntries = state.journalEntries.map(entry => ({
+            ...entry,
+            pillar: entry.pillar === oldPillar ? newPillar : entry.pillar
+          }));
+          
+          const updatedTimeLogs = state.timeLogs.map(log => ({
+            ...log,
+            pillar: log.pillar === oldPillar ? newPillar : log.pillar
+          }));
+          
+          const updatedVisions = state.visions.map(vision => ({
+            ...vision,
+            pillar: vision.pillar === oldPillar ? newPillar : vision.pillar
+          }));
+          
+          const updatedAchievements = state.achievements.map(achievement => ({
+            ...achievement,
+            pillar: achievement.pillar === oldPillar ? newPillar : achievement.pillar
+          }));
+          
+          const updatedCurrentFocus = { ...state.currentFocus };
+          if (updatedCurrentFocus[oldPillar]) {
+            updatedCurrentFocus[newPillar] = updatedCurrentFocus[oldPillar];
+            delete updatedCurrentFocus[oldPillar];
+          }
+          
+          return {
+            pillars: newPillars,
+            goals: updatedGoals,
+            journalEntries: updatedJournalEntries,
+            timeLogs: updatedTimeLogs,
+            visions: updatedVisions,
+            achievements: updatedAchievements,
+            currentFocus: updatedCurrentFocus,
+          };
+        }),
+      deletePillar: (pillar) =>
+        set((state) => {
+          const newPillars = state.pillars.filter(p => p !== pillar);
+          
+          // Remove all related data for this pillar
+          const updatedGoals = {};
+          Object.keys(state.goals).forEach(period => {
+            updatedGoals[period] = state.goals[period].filter(goal => goal.pillar !== pillar);
+          });
+          
+          const updatedJournalEntries = state.journalEntries.filter(entry => entry.pillar !== pillar);
+          const updatedTimeLogs = state.timeLogs.filter(log => log.pillar !== pillar);
+          const updatedVisions = state.visions.filter(vision => vision.pillar !== pillar);
+          const updatedAchievements = state.achievements.filter(achievement => achievement.pillar !== pillar);
+          
+          const updatedCurrentFocus = { ...state.currentFocus };
+          delete updatedCurrentFocus[pillar];
+          
+          return {
+            pillars: newPillars,
+            goals: updatedGoals,
+            journalEntries: updatedJournalEntries,
+            timeLogs: updatedTimeLogs,
+            visions: updatedVisions,
+            achievements: updatedAchievements,
+            currentFocus: updatedCurrentFocus,
+          };
+        }),
       
       // Visions
       visions: mockData.visions,

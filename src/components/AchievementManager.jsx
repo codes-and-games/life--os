@@ -15,7 +15,7 @@ const AchievementManager = () => {
   });
   const [editData, setEditData] = useState({});
 
-  const pillars = ['Brain', 'Voice', 'Body', 'Soul'];
+  const { pillars } = useStore();
   const commonIcons = ['🏆', '🎯', '⚡', '🔥', '💪', '🧠', '🎤', '❤️', '⭐', '🚀'];
 
   const handleAdd = () => {
@@ -23,7 +23,7 @@ const AchievementManager = () => {
       addAchievement(newAchievement);
       setNewAchievement({
         title: '',
-        pillar: 'Brain',
+        pillar: pillars[0] || 'Health',
         icon: '🏆',
         date: new Date().toISOString().split('T')[0]
       });

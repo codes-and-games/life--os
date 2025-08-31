@@ -5,10 +5,25 @@ import useStore from '../store/useStore';
 
 
 const Navbar = ({ setIsMobileMenuOpen }) => {
-  const { user, sidebarCollapsed, goals } = useStore();
+  const { user, sidebarCollapsed, goals, pillars } = useStore();
   const [showNotifications, setShowNotifications] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
+
+  // Helper function to get pillar color
+  const getPillarColor = (pillar) => {
+    const colorMap = {
+      Health: 'emerald',
+      Academics: 'blue',
+      Passions: 'purple',
+      Relationship: 'pink',
+      Career: 'orange'
+    };
+    if (colorMap[pillar]) return colorMap[pillar];
+    const index = pillars.indexOf(pillar);
+    const colors = ['blue', 'emerald', 'purple', 'orange', 'pink', 'indigo', 'cyan', 'teal'];
+    return colors[index % colors.length];
+  };
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -122,7 +137,7 @@ const Navbar = ({ setIsMobileMenuOpen }) => {
                             className="p-3 bg-dark-700/30 rounded-lg hover:bg-dark-700/50 transition-colors"
                           >
                             <div className="flex items-start">
-                              <div className={`w-2 h-2 mt-1.5 rounded-full bg-${goal.pillar === 'Brain' ? 'blue' : goal.pillar === 'Body' ? 'emerald' : goal.pillar === 'Voice' ? 'purple' : 'orange'}-400 mr-2`}></div>
+                              <div className={`w-2 h-2 mt-1.5 rounded-full bg-${getPillarColor(goal.pillar)}-400 mr-2`}></div>
                               <div>
                                 <p className="text-white text-sm">{goal.text}</p>
                                 <div className="flex items-center justify-between mt-2">
@@ -130,7 +145,7 @@ const Navbar = ({ setIsMobileMenuOpen }) => {
                                   <div className="flex items-center">
                                     <div className="w-24 h-1.5 bg-dark-600/50 rounded-full overflow-hidden">
                                       <div
-                                        className={`h-full bg-${goal.pillar === 'Brain' ? 'blue' : goal.pillar === 'Body' ? 'emerald' : goal.pillar === 'Voice' ? 'purple' : 'orange'}-500`}
+                                        className={`h-full bg-${getPillarColor(goal.pillar)}-500`}
                                         style={{ width: `${goal.progress}%` }}
                                       ></div>
                                     </div>

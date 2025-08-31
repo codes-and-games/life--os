@@ -14,12 +14,12 @@ const Journal = () => {
   const [newEntry, setNewEntry] = useState({
     title: '',
     content: '',
-    category: 'Health',
+    category: 'General',
     mood: 3,
   });
 
-  const categories = ['All', 'Health', 'Debate', 'Academics', 'Passions'];
-  const pillars = ['All', 'Brain', 'Voice', 'Body', 'Soul'];
+  const { pillars } = useStore();
+  const categories = ['All', 'General', 'Personal', 'Work', 'Study', 'Exercise'];
   const moods = [
     { value: 1, icon: Frown, color: 'text-red-400', label: 'Poor' },
     { value: 2, icon: Frown, color: 'text-orange-400', label: 'Fair' },
@@ -38,7 +38,7 @@ const Journal = () => {
   const handleAddEntry = () => {
     if (newEntry.title.trim() && newEntry.content.trim()) {
       addJournalEntry(newEntry);
-      setNewEntry({ title: '', content: '', category: 'Health', mood: 3 });
+      setNewEntry({ title: '', content: '', category: 'General', mood: 3 });
       setShowNewEntry(false);
     }
   };

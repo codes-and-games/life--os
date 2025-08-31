@@ -21,12 +21,13 @@ const TimeLog = ({ isNew = false }) => {
     notes: ''
   });
   
-  const pillars = ['Brain', 'Voice', 'Body', 'Soul'];
+  const { pillars } = useStore();
   const categories = {
-    Brain: ['Study', 'Research', 'Problem Solving', 'Learning'],
-    Voice: ['Debate', 'Practice', 'Analysis', 'Communication'],
-    Body: ['Exercise', 'Sports', 'Training', 'Recovery'],
-    Soul: ['Project', 'Reading', 'Reflection', 'Creativity']
+    Health: ['Exercise', 'Sports', 'Training', 'Recovery', 'Nutrition'],
+    Academics: ['Study', 'Research', 'Problem Solving', 'Learning', 'Homework'],
+    Passions: ['Project', 'Reading', 'Reflection', 'Creativity', 'Hobbies'],
+    Relationship: ['Family Time', 'Friends', 'Social Events', 'Communication', 'Dating'],
+    Career: ['Work', 'Networking', 'Skill Building', 'Job Search', 'Professional Development']
   };
   
   const handleChange = (e) => {
