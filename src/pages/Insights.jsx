@@ -5,7 +5,7 @@ import AnimatedCard from '../components/AnimatedCard';
 import useStore from '../store/useStore';
 
 const Insights = () => {
-  const { user, goals, timeLogs, journalEntries, getAnalytics } = useStore();
+  const { user, goals, timeLogs, journalEntries, getAnalytics, pillars } = useStore();
   
   const analytics = getAnalytics();
 
@@ -16,18 +16,18 @@ const Insights = () => {
   ];
 
   // Calculate time log insights
-  const timeLogInsights = timeLogs.reduce((acc, log) => {
-    if (!acc[log.pillar]) {
-      acc[log.pillar] = { totalTime: 0, activities: 0 };
-    }
-    acc[log.pillar].totalTime += log.duration;
-    acc[log.pillar].activities += 1;
+  const timeLogInsights = analytics.timeDistributionByPillar.reduce((acc, item) => {
+    const activities = timeLogs.filter(log => log.pillar === item.name).length;
+    acc[item.name] = {
+      totalTime: item.value,
+      activities: activities
+    };
     return acc;
   }, {});
 
   // Calculate productivity metrics
   const totalGoalsCompleted = Object.values(goals).flat().filter(g => g.completed).length;
-  const totalTimeLogged = timeLogs.reduce((sum, log) => sum + log.duration, 0);
+  const totalTimeLogged = analytics.totalTimeLogged;
   const journalEntriesThisWeek = journalEntries.filter(entry => {
     const entryDate = new Date(entry.date);
     const weekAgo = new Date();
@@ -38,24 +38,6 @@ const Insights = () => {
   // Most productive pillar
   const mostProductivePillar = Object.entries(timeLogInsights)
     .sort((a, b) => b[1].totalTime - a[1].totalTime)[0]?.[0] || 'N/A';
-
-  const { pillars } = useStore();
-  
-  const pillarColorMap = {
-    Health: '#10b981',
-    Academics: '#3b82f6',
-    Passions: '#8b5cf6',
-    Relationship: '#ec4899',
-    Career: '#f59e0b'
-  };
-  
-  const defaultColors = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ec4899', '#6366f1', '#06b6d4', '#14b8a6'];
-  
-  const categoryDistribution = pillars.map((pillar, index) => ({
-    name: pillar,
-    value: timeLogInsights[pillar] ? Math.round((timeLogInsights[pillar].totalTime / totalTimeLogged) * 100) : 0,
-    color: pillarColorMap[pillar] || defaultColors[index % defaultColors.length]
-  }));
 
   // Helper function to get the appropriate background color class
   const getBgColorClass = (color) => {

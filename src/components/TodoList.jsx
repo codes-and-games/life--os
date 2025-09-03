@@ -4,7 +4,7 @@ import { Plus, Check, X, Calendar, Edit, ChevronDown, ChevronUp, List } from 'lu
 import useStore from '../store/useStore';
 
 const TodoList = ({ period, title }) => {
-  const { goals, addGoal, toggleGoal, deleteGoal, updateGoal, checkStreakUpdate, pillars } = useStore();
+  const { goals, addGoal, toggleGoal, deleteGoal, updateGoal, checkDailyCompletion, pillars } = useStore();
   const [newGoal, setNewGoal] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [editingGoalId, setEditingGoalId] = useState(null);
@@ -38,9 +38,9 @@ const TodoList = ({ period, title }) => {
 
   const handleToggleGoal = (goalId) => {
     toggleGoal(period, goalId);
-    // Check for streak update when toggling today's goals
+    // Check daily completion when toggling today's goals
     if (period === 'today') {
-      setTimeout(() => checkStreakUpdate(), 100);
+      setTimeout(() => checkDailyCompletion(), 100);
     }
   };
 

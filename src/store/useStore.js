@@ -8,7 +8,13 @@ const useStore = create(
   persist(
     (set, get) => ({
       // User data
-      user: mockData.user,
+      user: {
+        ...mockData.user,
+        currentStreak: 0,
+        lastStreakUpdate: null,
+        streakHistory: [], // Array of { date: 'YYYY-MM-DD', streak: number }
+        dailyCompletionHistory: [] // Array of { date: 'YYYY-MM-DD', completed: number, total: number, pillars: { pillar: { completed: number, total: number } } }
+      },
       
       // Pillars
       pillars: defaultPillars,
@@ -151,33 +157,117 @@ const useStore = create(
           const goal = state.goals[period].find(g => g.id === id);
           const newCompleted = !goal.completed;
           
-          // Update streak calculation based on daily goal completion
           let userUpdate = {};
+          
           if (newCompleted && period === 'today') {
-            // Check if this completion should trigger a streak update
             const todayGoals = state.goals.today;
             const completedAfterThis = todayGoals.filter(g => g.completed || g.id === id).length;
             const totalToday = todayGoals.length;
+            const today = new Date().toISOString().split('T')[0];
             
-            // If this completion brings us to 70% or more, update streak
-            if (totalToday > 0 && (completedAfterThis / totalToday) >= 0.7) {
-              const today = new Date().toISOString().split('T')[0];
+            // If ALL daily goals are completed, update streak
+            if (totalToday > 0 && completedAfterThis === totalToday) {
               if (state.user.lastStreakUpdate !== today) {
+                const newStreak = state.user.currentStreak + 1;
                 userUpdate = {
                   user: {
                     ...state.user,
-                    currentStreak: state.user.currentStreak + 1,
+                    currentStreak: newStreak,
                     completedGoals: state.user.completedGoals + 1,
-                    lastStreakUpdate: today
+                    lastStreakUpdate: today,
+                    streakHistory: [
+                      ...state.user.streakHistory,
+                      { date: today, streak: newStreak }
+                    ]
                   }
                 };
               }
             }
+            
+            // Update daily completion history
+            const existingHistoryIndex = state.user.dailyCompletionHistory.findIndex(h => h.date === today);
+            const pillarBreakdown = {};
+            
+            // Calculate completion by pillar
+            state.pillars.forEach(pillar => {
+              const pillarGoals = todayGoals.filter(g => g.pillar === pillar);
+              const pillarCompleted = pillarGoals.filter(g => g.completed || g.id === id).length;
+              pillarBreakdown[pillar] = {
+                completed: pillarCompleted,
+                total: pillarGoals.length
+              };
+            });
+            
+            const historyEntry = {
+              date: today,
+              completed: completedAfterThis,
+              total: totalToday,
+              pillars: pillarBreakdown
+            };
+            
+            if (existingHistoryIndex >= 0) {
+              const updatedHistory = [...state.user.dailyCompletionHistory];
+              updatedHistory[existingHistoryIndex] = historyEntry;
+              userUpdate = {
+                ...userUpdate,
+                user: {
+                  ...userUpdate.user || state.user,
+                  dailyCompletionHistory: updatedHistory
+                }
+              };
+            } else {
+              userUpdate = {
+                ...userUpdate,
+                user: {
+                  ...userUpdate.user || state.user,
+                  dailyCompletionHistory: [
+                    ...state.user.dailyCompletionHistory,
+                    historyEntry
+                  ]
+                }
+              };
+            }
           } else if (!newCompleted && period === 'today') {
-            // If uncompleting a goal, check if streak should be maintained
+            const today = new Date().toISOString().split('T')[0];
+            const todayGoals = state.goals.today;
+            const completedAfterThis = todayGoals.filter(g => g.completed && g.id !== id).length;
+            const totalToday = todayGoals.length;
+            
+            // Update daily completion history
+            const existingHistoryIndex = state.user.dailyCompletionHistory.findIndex(h => h.date === today);
+            const pillarBreakdown = {};
+            
+            state.pillars.forEach(pillar => {
+              const pillarGoals = todayGoals.filter(g => g.pillar === pillar);
+              const pillarCompleted = pillarGoals.filter(g => g.completed && g.id !== id).length;
+              pillarBreakdown[pillar] = {
+                completed: pillarCompleted,
+                total: pillarGoals.length
+              };
+            });
+            
+            const historyEntry = {
+              date: today,
+              completed: completedAfterThis,
+              total: totalToday,
+              pillars: pillarBreakdown
+            };
+            
+            if (existingHistoryIndex >= 0) {
+              const updatedHistory = [...state.user.dailyCompletionHistory];
+              updatedHistory[existingHistoryIndex] = historyEntry;
+              userUpdate = {
+                user: {
+                  ...state.user,
+                  dailyCompletionHistory: updatedHistory
+                }
+              };
+            }
+            
             userUpdate = {
+              ...userUpdate,
               user: {
-                ...state.user,
+                ...userUpdate.user || state.user,
                 completedGoals: Math.max(0, state.user.completedGoals - 1)
               }
             };
@@ -367,56 +457,77 @@ const useStore = create(
         }));
       },
       
-      // Check and update streak based on goal completion
-      checkStreakUpdate: () => {
-        const today = new Date().toISOString().split('T')[0];
-        const state = get();
-        
-        if (state.user.lastStreakUpdate !== today) {
-          const todayGoals = state.goals.today;
-          const completedToday = todayGoals.filter(goal => goal.completed).length;
-          const totalToday = todayGoals.length;
-          
-          // Update streak if at least 70% of today's goals are completed
-          if (totalToday > 0 && (completedToday / totalToday) >= 0.7) {
-            state.updateStreak();
-          }
-        }
-      },
       
       // Calculate real-time analytics
       getAnalytics: () => {
         const state = get();
+        const today = new Date();
+        const last7Days = [];
+        const last5Months = [];
         
-        // Calculate weekly progress based on actual goal completion
-        const weeklyProgress = [];
-        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        // Generate last 7 days
+        for (let i = 6; i >= 0; i--) {
+          const date = new Date(today);
+          date.setDate(date.getDate() - i);
+          last7Days.push(date.toISOString().split('T')[0]);
+        }
         
-        days.forEach(day => {
-          const dayData = { name: day };
-          state.pillars.forEach(pillar => {
-            // Calculate completion rate for this pillar on this day
-            const pillarGoals = state.goals.today.filter(g => g.pillar === pillar);
-            const completedPillarGoals = pillarGoals.filter(g => g.completed);
-            const rate = pillarGoals.length > 0 ? (completedPillarGoals.length / pillarGoals.length) * 100 : 0;
-            dayData[pillar] = Math.round(rate);
+        // Generate last 5 months
+        for (let i = 4; i >= 0; i--) {
+          const date = new Date(today);
+          date.setMonth(date.getMonth() - i);
+          last5Months.push({
+            month: date.toLocaleDateString('en-US', { month: 'short' }),
+            date: date.toISOString().split('T')[0].substring(0, 7) // YYYY-MM format
           });
-          weeklyProgress.push(dayData);
+        }
+        
+        // Calculate weekly progress based on actual daily completion history
+        const weeklyProgress = last7Days.map((dateStr, index) => {
+          const date = new Date(dateStr);
+          const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+          
+          const historyEntry = state.user.dailyCompletionHistory.find(h => h.date === dateStr);
+          const dayData = { name: dayName };
+          
+          if (historyEntry && historyEntry.pillars) {
+            state.pillars.forEach(pillar => {
+              const pillarData = historyEntry.pillars[pillar];
+              if (pillarData && pillarData.total > 0) {
+                dayData[pillar] = Math.round((pillarData.completed / pillarData.total) * 100);
+              } else {
+                dayData[pillar] = 0;
+              }
+            });
+          } else {
+            // No data for this day
+            state.pillars.forEach(pillar => {
+              dayData[pillar] = 0;
+            });
+          }
+          
+          return dayData;
         });
         
-        // Calculate category performance based on time logs and goal completion
+        // Calculate category performance based on goal completion rates
         const categoryPerformance = state.pillars.map(pillar => {
-          const pillarGoals = Object.values(state.goals).flat().filter(g => g.pillar === pillar);
-          const completedPillarGoals = pillarGoals.filter(g => g.completed);
-          const completionRate = pillarGoals.length > 0 ? (completedPillarGoals.length / pillarGoals.length) * 100 : 0;
+          // Get all goals for this pillar
+          const allGoals = [
+            ...state.goals.today.filter(g => g.pillar === pillar),
+            ...state.goals.weekly.filter(g => g.pillar === pillar),
+            ...state.goals.monthly.filter(g => g.pillar === pillar)
+          ];
           
-          // Factor in time logs
+          const completedGoals = allGoals.filter(g => g.completed);
+          const completionRate = allGoals.length > 0 ? (completedGoals.length / allGoals.length) * 100 : 0;
+          
+          // Factor in time logs for this pillar
           const pillarTimeLogs = state.timeLogs.filter(log => log.pillar === pillar);
           const totalTimeForPillar = pillarTimeLogs.reduce((sum, log) => sum + log.duration, 0);
-          const timeScore = Math.min(100, (totalTimeForPillar / 60) * 10); // 1 hour = 10 points, max 100
+          const timeScore = Math.min(100, (totalTimeForPillar / 300) * 100); // 5 hours = 100 points
           
-          // Combine completion rate and time investment
-          const overallScore = Math.round((completionRate * 0.7) + (timeScore * 0.3));
+          // Combine completion rate (60%) and time investment (40%)
+          const overallScore = Math.round((completionRate * 0.6) + (timeScore * 0.4));
           
           return {
             subject: pillar,
@@ -425,21 +536,164 @@ const useStore = create(
           };
         });
         
-        // Calculate monthly streaks (simplified - using current streak data)
-        const monthlyStreaks = [
-          { month: 'Sep', streak: Math.max(0, state.user.currentStreak - 120) },
-          { month: 'Oct', streak: Math.max(0, state.user.currentStreak - 90) },
-          { month: 'Nov', streak: Math.max(0, state.user.currentStreak - 60) },
-          { month: 'Dec', streak: Math.max(0, state.user.currentStreak - 30) },
-          { month: 'Jan', streak: state.user.currentStreak },
-        ];
+        // Calculate monthly streaks based on actual streak history
+        const monthlyStreaks = last5Months.map(({ month, date }) => {
+          // Find the highest streak in that month
+          const monthStreaks = state.user.streakHistory.filter(s => s.date.startsWith(date));
+          const maxStreak = monthStreaks.length > 0 
+            ? Math.max(...monthStreaks.map(s => s.streak))
+            : 0;
+          
+          return {
+            month,
+            streak: maxStreak
+          };
+        });
+        
+        // Time distribution data (real-time from time logs)
+        const timeByPillar = {};
+        const timeByCategory = {};
+        
+        state.timeLogs.forEach(log => {
+          // By pillar
+          if (!timeByPillar[log.pillar]) {
+            timeByPillar[log.pillar] = 0;
+          }
+          timeByPillar[log.pillar] += log.duration;
+          
+          // By category
+          if (!timeByCategory[log.category]) {
+            timeByCategory[log.category] = 0;
+          }
+          timeByCategory[log.category] += log.duration;
+        });
+        
+        const pillarColorMap = {
+          Health: '#10b981',
+          Academics: '#3b82f6',
+          Passions: '#8b5cf6',
+          Relationship: '#ec4899',
+          Career: '#f59e0b'
+        };
+        
+        const defaultColors = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ec4899', '#6366f1', '#06b6d4', '#14b8a6'];
+        
+        const timeDistributionByPillar = Object.entries(timeByPillar).map(([name, value], index) => ({
+          name,
+          value,
+          color: pillarColorMap[name] || defaultColors[index % defaultColors.length]
+        }));
+        
+        const timeDistributionByCategory = Object.entries(timeByCategory).map(([name, value], index) => ({
+          name,
+          value,
+          color: defaultColors[index % defaultColors.length]
+        }));
         
         return {
           weeklyProgress,
           categoryPerformance,
-          monthlyStreaks
+          monthlyStreaks,
+          timeDistributionByPillar,
+          timeDistributionByCategory,
+          totalTimeLogged: Object.values(timeByPillar).reduce((sum, time) => sum + time, 0),
+          totalActivities: state.timeLogs.length
         };
       },
+      
+      // Update streak tracking
+      updateStreak: () => {
+        const today = new Date().toISOString().split('T')[0];
+        const state = get();
+        const newStreak = state.user.currentStreak + 1;
+        
+        set({
+          user: { 
+            ...state.user, 
+            currentStreak: newStreak,
+            lastStreakUpdate: today,
+            streakHistory: [
+              ...state.user.streakHistory,
+              { date: today, streak: newStreak }
+            ]
+          },
+        });
+      },
+      
+      // Reset streak
+      resetStreak: () => {
+        const today = new Date().toISOString().split('T')[0];
+        set((state) => ({
+          user: {
+            ...state.user,
+            currentStreak: 0,
+            lastStreakUpdate: today,
+            streakHistory: [
+              ...state.user.streakHistory,
+              { date: today, streak: 0 }
+            ]
+          }
+        }));
+      },
+      
+      // Check daily goal completion and update streak
+      checkDailyCompletion: () => {
+        const state = get();
+        const today = new Date().toISOString().split('T')[0];
+        const todayGoals = state.goals.today;
+        const completedToday = todayGoals.filter(goal => goal.completed).length;
+        const totalToday = todayGoals.length;
+        
+        // Update daily completion history
+        const pillarBreakdown = {};
+        state.pillars.forEach(pillar => {
+          const pillarGoals = todayGoals.filter(g => g.pillar === pillar);
+          const pillarCompleted = pillarGoals.filter(g => g.completed).length;
+          pillarBreakdown[pillar] = {
+            completed: pillarCompleted,
+            total: pillarGoals.length
+          };
+        });
+        
+        const historyEntry = {
+          date: today,
+          completed: completedToday,
+          total: totalToday,
+          pillars: pillarBreakdown
+        };
+        
+        const existingHistoryIndex = state.user.dailyCompletionHistory.findIndex(h => h.date === today);
+        let updatedHistory;
+        
+        if (existingHistoryIndex >= 0) {
+          updatedHistory = [...state.user.dailyCompletionHistory];
+          updatedHistory[existingHistoryIndex] = historyEntry;
+        } else {
+          updatedHistory = [...state.user.dailyCompletionHistory, historyEntry];
+        }
+        
+        // Check if ALL daily goals are completed for streak update
+        if (totalToday > 0 && completedToday === totalToday && state.user.lastStreakUpdate !== today) {
+          const newStreak = state.user.currentStreak + 1;
+          set({
+            user: {
+              ...state.user,
+              currentStreak: newStreak,
+              lastStreakUpdate: today,
+              dailyCompletionHistory: updatedHistory,
+              streakHistory: [
+                ...state.user.streakHistory,
+                { date: today, streak: newStreak }
+              ]
+            }
+          });
+        } else {
+          set({
+            user: {
+              ...state.user,
+              dailyCompletionHistory: updatedHistory
+            }
+          });
     }),
     {
       name: 'life-os-storage',
