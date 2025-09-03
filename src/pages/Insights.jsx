@@ -15,7 +15,7 @@ const Insights = () => {
     { name: 'Monthly', completed: goals.monthly.filter(g => g.completed).length, total: goals.monthly.length },
   ];
 
-  // Calculate time log insights
+  // Use real-time analytics data
   const timeLogInsights = analytics.timeDistributionByPillar.reduce((acc, item) => {
     const activities = timeLogs.filter(log => log.pillar === item.name).length;
     acc[item.name] = {
@@ -26,7 +26,7 @@ const Insights = () => {
   }, {});
 
   // Calculate productivity metrics
-  const totalGoalsCompleted = Object.values(goals).flat().filter(g => g.completed).length;
+  const totalGoalsCompleted = analytics.productivityMetrics.goalCompletionRate;
   const totalTimeLogged = analytics.totalTimeLogged;
   const journalEntriesThisWeek = journalEntries.filter(entry => {
     const entryDate = new Date(entry.date);
@@ -36,8 +36,7 @@ const Insights = () => {
   }).length;
 
   // Most productive pillar
-  const mostProductivePillar = Object.entries(timeLogInsights)
-    .sort((a, b) => b[1].totalTime - a[1].totalTime)[0]?.[0] || 'N/A';
+  const mostProductivePillar = analytics.productivityMetrics.mostProductivePillar;
 
   // Helper function to get the appropriate background color class
   const getBgColorClass = (color) => {
@@ -66,13 +65,13 @@ const Insights = () => {
       icon: TrendingUp,
       title: 'Total Time Logged',
       description: `${Math.floor(totalTimeLogged / 60)}h ${totalTimeLogged % 60}m tracked this period`,
-      trend: `${timeLogs.length} activities`,
+      trend: `${analytics.productivityMetrics.totalSessions} activities`,
       color: 'blue',
     },
     {
       icon: Award,
       title: 'Goals Completed',
-      description: `${totalGoalsCompleted} goals accomplished across all timeframes`,
+      description: `${totalGoalsCompleted}% completion rate across all timeframes`,
       trend: `${user.currentStreak} day streak`,
       color: 'emerald',
     },
@@ -263,7 +262,7 @@ const Insights = () => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={categoryDistribution}
+                  data={analytics.timeDistributionByCategory}
                   cx="50%"
                   cy="50%"
                   outerRadius={80}
@@ -271,8 +270,11 @@ const Insights = () => {
                   dataKey="value"
                   strokeWidth={0}
                 >
-                  {categoryDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  {analytics.timeDistributionByCategory.map((entry, index) => {
+                    const colors = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899'];
+                    return (
+                      <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                    );
                   ))}
                 </Pie>
                 <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155' }} />
@@ -281,7 +283,9 @@ const Insights = () => {
           </div>
           
           <div className="flex flex-col justify-center space-y-4">
-            {categoryDistribution.map((category, index) => (
+            {analytics.timeDistributionByCategory.map((category, index) => {
+              const colors = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899'];
+              return (
               <motion.div
                 key={category.name}
                 initial={{ opacity: 0, x: 20 }}
@@ -292,16 +296,17 @@ const Insights = () => {
                 <div className="flex items-center space-x-3">
                   <div
                     className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: category.color }}
+                    style={{ backgroundColor: colors[index % colors.length] }}
                   />
                   <span className="font-medium text-white">{category.name}</span>
                   <span className="text-xs text-dark-400">
-                    ({timeLogInsights[category.name]?.activities || 0} activities)
+                    ({Math.floor((category.totalTime || 0) / 60)}h {(category.totalTime || 0) % 60}m)
                   </span>
                 </div>
                 <span className="text-dark-300 font-semibold text-sm md:text-base">{category.value}%</span>
               </motion.div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </AnimatedCard>
@@ -313,12 +318,12 @@ const Insights = () => {
           Productivity Metrics
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {analytics.timeDistributionByPillar.map((pillar) => {
+          {analytics.timeDistributionByPillar.map((pillar, index) => {
             const activities = timeLogs.filter(log => log.pillar === pillar.name).length;
             const avgTime = activities > 0 ? Math.round(pillar.value / activities) : 0;
             
             return (
-            <div key={pillar} className="text-center p-4 bg-dark-700/30 rounded-xl">
+            <div key={pillar.name} className="text-center p-4 bg-dark-700/30 rounded-xl">
               <h4 className="text-lg font-semibold text-white mb-2">{pillar.name}</h4>
               <p className="text-2xl font-bold text-blue-400 mb-1">
                 {Math.floor(pillar.value / 60)}h {pillar.value % 60}m
@@ -330,6 +335,39 @@ const Insights = () => {
             </div>
             );
           })}
+          
+          {/* Additional productivity metrics */}
+          <div className="md:col-span-2 lg:col-span-4 mt-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-dark-700/30 rounded-xl">
+                <h4 className="text-lg font-semibold text-emerald-400 mb-2">
+                  {analytics.productivityMetrics.averageSessionLength}min
+                </h4>
+                <p className="text-sm text-dark-400">Avg Session</p>
+              </div>
+              
+              <div className="text-center p-4 bg-dark-700/30 rounded-xl">
+                <h4 className="text-lg font-semibold text-blue-400 mb-2">
+                  {analytics.productivityMetrics.goalCompletionRate}%
+                </h4>
+                <p className="text-sm text-dark-400">Goal Success Rate</p>
+              </div>
+              
+              <div className="text-center p-4 bg-dark-700/30 rounded-xl">
+                <h4 className="text-lg font-semibold text-purple-400 mb-2">
+                  {analytics.productivityMetrics.totalSessions}
+                </h4>
+                <p className="text-sm text-dark-400">Total Sessions</p>
+              </div>
+              
+              <div className="text-center p-4 bg-dark-700/30 rounded-xl">
+                <h4 className="text-lg font-semibold text-orange-400 mb-2">
+                  {analytics.productivityMetrics.mostProductivePillar}
+                </h4>
+                <p className="text-sm text-dark-400">Top Focus Area</p>
+              </div>
+            </div>
+          </div>
         </div>
       </AnimatedCard>
     </div>
