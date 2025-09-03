@@ -313,18 +313,23 @@ const Insights = () => {
           Productivity Metrics
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Object.entries(timeLogInsights).map(([pillar, data]) => (
+          {analytics.timeDistributionByPillar.map((pillar) => {
+            const activities = timeLogs.filter(log => log.pillar === pillar.name).length;
+            const avgTime = activities > 0 ? Math.round(pillar.value / activities) : 0;
+            
+            return (
             <div key={pillar} className="text-center p-4 bg-dark-700/30 rounded-xl">
-              <h4 className="text-lg font-semibold text-white mb-2">{pillar}</h4>
+              <h4 className="text-lg font-semibold text-white mb-2">{pillar.name}</h4>
               <p className="text-2xl font-bold text-blue-400 mb-1">
-                {Math.floor(data.totalTime / 60)}h {data.totalTime % 60}m
+                {Math.floor(pillar.value / 60)}h {pillar.value % 60}m
               </p>
-              <p className="text-sm text-dark-400">{data.activities} activities</p>
+              <p className="text-sm text-dark-400">{activities} activities</p>
               <p className="text-xs text-dark-500 mt-1">
-                Avg: {Math.round(data.totalTime / data.activities)}min/activity
+                Avg: {avgTime}min/activity
               </p>
             </div>
-          ))}
+            );
+          })}
         </div>
       </AnimatedCard>
     </div>

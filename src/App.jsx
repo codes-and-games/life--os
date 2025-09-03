@@ -21,7 +21,7 @@ const PageWrapper = ({ children }) => {
     const checkMobile = () => {
       const width = window.innerWidth;
       setIsMobile(width < 640);
-      setIsTablet(width >= 640 && width < 1024);
+      setIsTablet(width >= 640 && width < 1280);
     };
     
     checkMobile();
@@ -32,7 +32,7 @@ const PageWrapper = ({ children }) => {
   return (
     <motion.div
       animate={{ 
-        marginLeft: isMobile ? 0 : isTablet ? 0 : (sidebarCollapsed ? 80 : 280),
+        marginLeft: isMobile || isTablet ? 0 : (sidebarCollapsed ? 80 : 280),
         marginTop: isMobile ? 0 : 80
       }}
       transition={{ duration: 0.3, ease: "easeInOut" }}

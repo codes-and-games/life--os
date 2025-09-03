@@ -29,7 +29,7 @@ const Navbar = ({ setIsMobileMenuOpen }) => {
     const checkScreenSize = () => {
       const width = window.innerWidth;
       setIsMobile(width < 640);
-      setIsTablet(width >= 640 && width < 1024);
+      setIsTablet(width >= 640 && width < 1280);
     };
     
     checkScreenSize();
@@ -53,7 +53,7 @@ const Navbar = ({ setIsMobileMenuOpen }) => {
   return (
     <motion.header
       animate={{
-        marginLeft: isMobile ? 0 : isTablet ? 0 : (sidebarCollapsed ? 80 : 280)
+        marginLeft: isMobile || isTablet ? 0 : (sidebarCollapsed ? 80 : 280)
       }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className="topbar fixed top-0 left-0 right-0 h-16 bg-dark-900/80 backdrop-blur-xl border-b border-dark-700/50 z-40 hidden sm:flex"

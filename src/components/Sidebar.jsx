@@ -189,7 +189,7 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       </motion.aside>
       {/* Hide topbar on mobile/tablet using CSS */}
       <style>{`
-        @media (max-width: 639px) {
+        @media (max-width: 1279px) {
           .topbar, header.topbar {
             display: none !important;
           }

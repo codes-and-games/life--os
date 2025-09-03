@@ -60,13 +60,12 @@ const TimeLogs = () => {
       result[log.category] += log.duration;
     });
     
+    const defaultColors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#6366f1', '#14b8a6'];
+    
     return Object.entries(result).map(([name, value], index) => ({
       name,
       value,
-      color: [
-        '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b',
-        '#ef4444', '#ec4899', '#6366f1', '#14b8a6'
-      ][index % 8]
+      color: defaultColors[index % defaultColors.length]
     }));
   }, [filteredLogs]);
   
